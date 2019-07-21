@@ -1,0 +1,37 @@
+{
+    "name": "wanghouting/laravel-admin-backup",
+    "description": "a backup  extension for laravel-admin ",
+    "type": "tools",
+    "minimum-stability": "dev",
+    "require": {
+        "encore/laravel-admin": "^1.6",
+        "spatie/laravel-backup":"^6.2",
+        "php": "^7.0.3"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "wanghouting",
+            "email": "wanghouting@163.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LTBackup\\Extension\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LTBackup\\Extension\\LaravelServiceProvider"
+            ],
+            "aliases": {
+                "LTBackup": "LTBackup\\Extension\\Facades\\LTBackup"
+            }
+        }
+    }
+}
+
