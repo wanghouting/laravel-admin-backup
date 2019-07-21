@@ -1,5 +1,5 @@
 <?php
-namespace LTBackup\Extension\Database\Seeders;
+namespace LTBackup\Extension\Databases\Seeders;
 
 use Encore\Admin\Auth\Database\Menu;
 use Illuminate\Database\Seeder;

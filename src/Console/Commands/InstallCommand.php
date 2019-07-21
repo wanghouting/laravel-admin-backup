@@ -3,7 +3,7 @@
 namespace LTBackup\Extension\Console\Commands;
 
 use Illuminate\Console\Command;
-use LTBackup\Extension\Database\Seeders\LTUpdateDatabaseSeeder;
+use LTBackup\Extension\Databases\Seeders\LTUpdateDatabaseSeeder;
 
 class InstallCommand extends Command
 {
