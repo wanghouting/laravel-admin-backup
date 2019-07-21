@@ -14,7 +14,7 @@ use LTBackup\Extension\Tools\Buttons\RunButton;
 use LTBackup\Extension\Tools\Form\Form;
 use LTBackup\Extension\Tools\Grid\Actions;
 use LTBackup\Extension\Tools\Grid\Grid;
-use Modules\Admin\Tools\Layout\Content;
+use LTBackup\Extension\Tools\Layout\Content;
 
 
 /**
@@ -54,7 +54,7 @@ class LTBackupRuleController extends AdminBaseController
         $script = <<<EOT
         var int = setTimeout(function(){
             $.pjax.reload('#pjax-container');
-        },6000)
+        },10000)
 EOT;
         Admin::script($script);
     }
@@ -111,7 +111,8 @@ EOT;
             $grid->disableCreateButton();
             $grid->iId('ID');
             $grid->column('rule.name','规则名称');
-            $grid->column('created_at','开始时间');
+            $grid->column('created_at','创建时间');
+            $grid->column('running_at','执行时间');
             $grid->column('updated_at','结束时间')->display(function ($value) {
                 return  $this->status <= 1 ? '' : $value;
             });

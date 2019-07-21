@@ -16,8 +16,9 @@ class CreateLtbackupLogTable extends Migration
         Schema::create('ltbackup_log', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->tinyInteger('rule_id')->default(0)->comment('规则id');
-            $table->tinyInteger('status')->default(0)->comment('执行状态：0:运行中，1:成功，2失败,3停止');
+            $table->tinyInteger('status')->default(0)->comment('执行状态：0:等待中，1:运行中，2成功,3失败,4停止');
             $table->string('file')->default('')->comment('备份文件');
+            $table->dateTime('running_at')->nullable();
             $table->timestamps();
         });
     }

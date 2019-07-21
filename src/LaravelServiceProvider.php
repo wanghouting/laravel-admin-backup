@@ -25,7 +25,7 @@ class LaravelServiceProvider extends  ServiceProvider
         $this->loadViewsFrom(__DIR__.'/Resources/views', 'ltbackup');
         $this->loadMigrationsFrom(__DIR__.'/Databases/migrations');
         $this->publishes([__DIR__.'/Resources/assets' => public_path('vendor/laravel-admin-ltbackup')], 'ltbackup-assets');
-
+        $this->loadRoutesFrom(__DIR__.'/Route/routes.php');
     }
 
 

@@ -101,7 +101,7 @@ class LTBackupDatabaseSeeder extends Seeder
                 'name'        => 'ltbackup_dir',
                 'cname'       => '备份存储目录',
                 'form'        => 'text',
-                'plainValue'  => '/backups',
+                'plainValue'  =>  base_path('backup'),
                 'extra'       =>  json_encode(['help'=>'备份文件存储目录，如果目录不存在，则自动创建']),
             ],
             [
@@ -115,19 +115,19 @@ class LTBackupDatabaseSeeder extends Seeder
 
             [
                 'type'        => 1,
-                'name'        => 'ltbackup_delete',
-                'cname'       => '自动删除备份文件',
-                'form'        => 'switch',
-                'plainValue'  => 'on',
-                'extra'       =>  json_encode(['help'=>'打开此功能将自动删除过期的备份文件']),
-            ],
-            [
-                'type'        => 1,
                 'name'        => 'ltbackup_date',
                 'cname'       => '备份文件保留天数',
                 'form'        => 'number',
                 'plainValue'  => '7',
                 'extra'       =>  json_encode(['min'=>1,'max'=>10000]),
+            ],
+            [
+                'type'        => 1,
+                'name'        => 'ltbackup_execute_timeout',
+                'cname'       => '任务超时时间(分钟)',
+                'form'        => 'number',
+                'plainValue'  => '3',
+                'extra'       =>  json_encode(['help'=>'每次执行任务的超时时间']),
             ],
             [
                 'type'        => 1,

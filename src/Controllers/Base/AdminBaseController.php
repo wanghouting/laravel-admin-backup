@@ -4,13 +4,13 @@ namespace LTBackup\Extension\Controllers\Base;
 
 
 use Encore\Admin\Controllers\HasResourceActions;
+use Encore\Admin\Show;
 use Illuminate\Routing\Controller;
 use LTBackup\Extension\Facades\SettingFacade;
-use Modules\Admin\Tools\Form\Form;
-use Modules\Admin\Tools\Grid\Grid;
-use Modules\Admin\Tools\Layout\Content;
-use Modules\Admin\Tools\Show\Show;
 
+
+use LTBackup\Extension\Tools\Grid\Grid;
+use LTBackup\Extension\Tools\Layout\Content;
 use RuntimeException;
 
 
@@ -79,7 +79,7 @@ class AdminBaseController extends Controller
 
     /**
      * @param $id
-     * @return Show
+     * 
      */
     protected function detail($id) {
         $this->id = $id;
@@ -87,14 +87,14 @@ class AdminBaseController extends Controller
     }
     
     /**
-     * @return Grid
+     *
      */
     protected function grid() {
         throw new RuntimeException('Controller does not implement grid method.');
     }
 
     /**
-     * @return Form
+     *
      */
     protected function form() {
         throw new RuntimeException('Controller does not implement form method.');

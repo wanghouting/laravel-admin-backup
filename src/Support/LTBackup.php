@@ -10,21 +10,23 @@ use LTBackup\Extension\Facades\SettingFacade;
  * Class LTBackup
  */
 class LTBackup{
-
+    
 
     public function getRunStateLabel($state)
     {
         switch ($state){
-            case 0:
+            case RunLog::RUN_STATE_WAITING:
                 return '<label class="label label-primary"><i class="fa fa-spinner fa-pulse "></i> 正在等待</label>';
-            case 1:
+            case RunLog::RUN_STATE_RUNNING:
                 return '<label class="label label-info"><i class="fa fa-spinner fa-pulse "></i> 正在执行</label>';
-            case 2:
+            case RunLog::RUN_STATE_SUCCESS:
                 return '<label class="label label-success"><i class="fa fa-spinner fa-pulse "></i> 执行完成</label>';
-            case 3:
+            case RunLog::RUN_STATE_FAIL:
                 return '<label class="label label-danger"><i class="fa fa-spinner fa-pulse "></i> 执行失败</label>';
-            case 4:
+            case RunLog::RUN_STATE_STOPED:
                 return '<label class="label label-warning"><i class="fa fa-spinner fa-pulse "></i> 用户停止</label>';
+            default:
+                return '<label class="label label-warning"><i class="fa fa-spinner fa-pulse "></i> 未知</label>';
         }
     }
 
@@ -55,15 +57,23 @@ class LTBackup{
                    });
                }
             }
-
-            $isRunning =  RunLog::where('status',1)->count();
-            if($isRunning == 0){
-                $waitRun =  RunLog::where('status',0)->orderBy('created_at','asc')->first();
+            $isRunning =  RunLog::where('status',RunLog::RUN_STATE_RUNNING)->first();
+            if($isRunning){
+                $waitRun =  RunLog::where('status',RunLog::RUN_STATE_WAITING)->orderBy('created_at','asc')->first();
                 if($waitRun){
-//                    $waitRun->status = 1;
-//                    $waitRun->save();
+                    $waitRun->status = RunLog::RUN_STATE_RUNNING;
+                    $waitRun->running_at = date('Y-m-d H:i:s');
+                    $waitRun->save();
                     $this->doJob($waitRun);
                 }
+            }else{   //看看有没有过期
+                if(!$isRunning->running_at || ( (time() -  strtotime($isRunning->running_at)) / 60  >  SettingFacade::get('ltbackup_execute_timeout') )  ){
+                    $waitRun->status = RunLog::RUN_STATE_FAIL;
+                    $waitRun->save();
+                    $this->runLog($log->id,'error:  执行超时！');
+                    $this->run($all);
+                }
+
             }
 
         }catch (\Exception $e){
@@ -76,22 +86,13 @@ class LTBackup{
      * @param RunLog $log
      */
     protected function doJob(RunLog $log){
+        
         try{
             //先看下备份目录在不在,不存在则创建
             $backupDir = SettingFacade::get('ltbackup_dir','/backups');
+
             is_dir($backupDir.'/tmp') && delete_dir($backupDir.'/tmp') ;
             !is_dir($backupDir.'/tmp') && mkdir($backupDir.'/tmp',0777,true);
-
-//            if(strtoupper(substr(PHP_OS,0,3))==='WIN'){
-//
-//            }else{
-//                exec(__DIR__.'/../Shell/linux/linux_dir.sh '.$backupDir,$res);
-//                if($res[0] !== 'ok'){
-//                    $this->runLog($log->id,'error: '.$res[0]);
-//                }else{
-//                    $this->runLog($log->id,'info: '.$res[0]);
-//                }
-//            }
 
             //根据备份类型做相应的备份
             $this->runLog($log->id,'info: 开始执行备份...');
@@ -112,8 +113,10 @@ class LTBackup{
                     break;
             }
         }catch (\Exception $e){
+            dd(11);
             $this->runLog($log->id,'error: '. $e->getMessage());
-
+            $log->status = RunLog::RUN_STATE_FAIL;
+            $log->save();
         }
 
 

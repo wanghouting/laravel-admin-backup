@@ -3,7 +3,7 @@
 namespace LTBackup\Extension\Console\Commands;
 
 use Illuminate\Console\Command;
-use LTBackup\Extension\Databases\Seeders\LTUpdateDatabaseSeeder;
+use LTBackup\Extension\Databases\Seeders\LTBackupDatabaseSeeder;
 
 class InstallCommand extends Command
 {
@@ -48,7 +48,8 @@ class InstallCommand extends Command
     {
         !is_dir(storage_path('logs/backup')) && mkdir(storage_path('logs/backup'),0777,true);
         $this->call('migrate');
-        $this->call('db:seed', ['--class' => LTUpdateDatabaseSeeder::class]);
+        $this->call('db:seed', ['--class' => LTBackupDatabaseSeeder::class]);
+        $this->call('vendor:publish', ['--provider'=> "LTBackup\Extension\LaravelServiceProvider"]);
     }
 
 
