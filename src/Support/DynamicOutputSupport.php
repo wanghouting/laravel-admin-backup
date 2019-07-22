@@ -77,12 +77,13 @@ class DynamicOutputSupport {
                     break;
             }
             return true;
-        }catch (LTToolsWebConsoleException $e){
+        }catch (WebConsoleException $e){
             $this->ssPrint("error: ".$e->getMessage(),true);
             $this->ssPrint("stopped",true);
             return false;
         }
     }
+
 
     /**
      * 初始化输出弹出层
