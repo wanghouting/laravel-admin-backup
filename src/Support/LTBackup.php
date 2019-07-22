@@ -273,10 +273,7 @@ class LTBackup{
         $this->runLog($log->id,self::LOG_END);
         $this->run(true);
     }
-    private function mysqlDump($log){
-        $this->runLog($log->id,'开始备份数据库...');
 
-    }
 
     public function runLog($id,$log){
         file_put_contents(storage_path('logs/backup/'.$id.'_backup.log'),$log."\n",8);
