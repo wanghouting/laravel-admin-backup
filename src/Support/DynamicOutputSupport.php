@@ -84,7 +84,6 @@ class DynamicOutputSupport {
         }
     }
 
-
     /**
      * 初始化输出弹出层
      */
@@ -96,6 +95,8 @@ class DynamicOutputSupport {
         echo "<style> body {background-color: #0C0C0C} </style>";
         echo "<div style='width:100%;height: auto;background-color: #0C0C0C;margin: 10px 0;'>";
         echo '<script type="text/javascript" src="/vendor/laravel-admin-backup/jquery/jquery.min.js"></script>';
+        //解决有icheck 报错
+        echo '<script type="text/javascript" src="/vendor/laravel-admin-backup/icheck/icheck.min.js"></script>';
         echo "<script>var scroll = function(){ $('body').scrollTop(1000000);}; </script>";
     }
 
