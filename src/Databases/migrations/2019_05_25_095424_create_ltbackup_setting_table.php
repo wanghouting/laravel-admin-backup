@@ -48,7 +48,7 @@ class CreateLtbackupSettingTable extends Migration
     public function down()
     {
 
-        Schema::dropIfExists('ltbackup_setting');
+        Schema::dropIfExists('ltbackup_settings');
         Schema::dropIfExists('ltbackup_setting_types');
     }
 }
