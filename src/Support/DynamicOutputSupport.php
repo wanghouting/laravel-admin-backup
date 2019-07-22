@@ -85,7 +85,7 @@ class DynamicOutputSupport {
      * 初始化输出弹出层
      */
     private function initBody(){
-        ob_end_clean();
+        //ob_end_clean();
         set_time_limit(0);
         ob_implicit_flush();
         header('X-Accel-Buffering: no');
