@@ -3,6 +3,7 @@
 namespace LTBackup\Extension\Controllers;
 
 use Encore\Admin\Admin;
+use Illuminate\Http\Request;
 use LTBackup\Extension\Controllers\Base\AdminBaseController;
 use LTBackup\Extension\Entities\Rule;
 use LTBackup\Extension\Entities\RunLog;
@@ -11,6 +12,7 @@ use LTBackup\Extension\Facades\GridBuilder;
 use LTBackup\Extension\Facades\LTBackup;
 use LTBackup\Extension\Facades\SettingFacade;
 use LTBackup\Extension\Tools\Buttons\RunButton;
+use LTBackup\Extension\Tools\Buttons\RunLogButton;
 use LTBackup\Extension\Tools\Form\Form;
 use LTBackup\Extension\Tools\Grid\Actions;
 use LTBackup\Extension\Tools\Grid\Grid;
@@ -33,15 +35,17 @@ class LTBackupRuleController extends AdminBaseController
 
     public function index(Content $content)
     {
-        $this->reload();
-
-        $content = $content->init($this->header,trans('admin.list'),$this->grid()->render().$this->gridLog()->render());
+        $gridLog = $this->gridLog();
+        $this->reloadData($gridLog);
+        $content = $content->init($this->header,trans('admin.list'),$this->grid()->render().$gridLog->render());
         $error = '';
         if(has_disabled_functions('exec'))
             $error = 'exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec';
 
         $backupDir = SettingFacade::get('ltbackup_dir','/backups');
-
+        if(!is_dir($backupDir)){
+            @mkdir($backupDir);
+        }
         if(!is_writeable($backupDir))
             $error .= "</br></br> ".$backupDir.'目录不可写';
         if(!empty($error))
@@ -50,15 +54,86 @@ class LTBackupRuleController extends AdminBaseController
     }
 
 
-    private function reload(){
+    private function reloadData(Grid $grid){
+        $token = csrf_token();
         $script = <<<EOT
-        var int = setTimeout(function(){
-            $.pjax.reload('#pjax-container');
-        },10000)
+         
+          function refresh() { 
+            var needUpdateCount = 0;
+            var needUpdateElement  = [];
+           $("#{$grid->tableID } tbody tr").each(function(){
+              var status =  $(this).find('.column-status').find('label').data('value');
+              if(status <= 1 ){
+                   
+                var id =  $(this).find('.column-status').find('label').data('id');
+                 needUpdateElement[id] = $(this);
+              } 
+          });
+          if(needUpdateElement.length > 0){
+          
+            var element = needUpdateElement.pop(); 
+            var id =  element.find('.column-status').find('label').data('id');
+            var status =  element.find('.column-status').find('label').data('value');
+           
+             var intv = setInterval(function(){
+                $.ajax({
+                    url:"/admin/ltbackup-refresh",
+                    dataType:"json",
+                    async:true,
+                    data:{"id":id,"status":status,"_token":"{$token}"},
+                    type:"POST",
+                    success:function(req){
+                        if(req.code == 200){
+                        console.log(req.data.status);
+                            if(status != req.data.status){//更新数据
+                                 element.find('.column-running_at').text(req.data.running_at);
+                                 var statusLabel = '';
+                                switch(req.data.status){
+                                    case 1:
+                                        statusLabel = '<label class="label label-info" data-id="'+id+'" data-value="'+req.data.status+'"><i class="fa fa-spinner fa-pulse "></i> 正在执行</label>';
+                                        element.find('.column-status').empty().append(statusLabel);
+                                        break;
+                                    case 2:
+                                        element.find('.column-updated_at').text(req.data.updated_at);
+                                        statusLabel = '<label class="label label-success" data-id="'+id+'" data-value="'+req.data.status+'"> 执行完成</label>';
+                                        element.find('.column-status').empty().append(statusLabel);   
+                                        break;
+                                    case 3:
+                                        element.find('.column-updated_at').text(req.data.updated_at);
+                                        statusLabel = '<label class="label label-danger" data-id="'+id+'" data-value="'+req.data.status+'"> 执行失败</label>';
+                                        element.find('.column-status').empty().append(statusLabel);  
+                                        break;
+                                    case 4:
+                                        element.find('.column-updated_at').text(req.data.updated_at);
+                                        statusLabel = '<label class="label label-warning" data-id="'+id+'" data-value="'+req.data.status+'"> 用户停止</label>';
+                                        element.find('.column-status').empty().append(statusLabel);
+                                        break;    
+                                    default:
+                                        element.find('.column-updated_at').text(req.data.updated_at);
+                                        statusLabel = '<label class="label label-warning" data-id="'+id+'" data-value="'+req.data.status+'"> 未知</label>';
+                                        element.find('.column-status').empty().append(statusLabel);
+                                        break;            
+                                }
+                            }
+                            
+                            if(req.data.status >= 2){
+                                clearInterval(intv);
+                                refresh();
+                            }
+                        }
+                     },
+                    error:function(){
+                    }
+
+                });            
+             },5000)
+           }
+        }
+            
+        refresh();
 EOT;
         Admin::script($script);
     }
-
 
 
     /**
@@ -91,7 +166,12 @@ EOT;
                 return LTBackup::getNextRunTime($this->time_at);
 
             });
-            $grid->column('run_times','运行次数');
+            $grid->column('run_times','执行次数');
+            $grid->column('success_times','成功次数')->display(function (){
+                return  $this->run_times - $this->run_fail_times;
+            });
+            $grid->column('run_fail_times','失败次数');
+
             $grid->created_at('创建时间');
             $grid->actions(function (Actions $actions){
                 $actions->disableView();
@@ -101,6 +181,7 @@ EOT;
         
     }
 
+
     /**
      * 运行日志记录
      * @return Grid
@@ -109,7 +190,7 @@ EOT;
         return   GridBuilder::buildGrid(RunLog::class,function (Grid $grid){
             $grid->model()->orderBy('id','desc');
             $grid->disableCreateButton();
-            $grid->iId('ID');
+            $grid->id('ID');
             $grid->column('rule.name','规则名称');
             $grid->column('created_at','创建时间');
             $grid->column('running_at','执行时间');
@@ -118,11 +199,13 @@ EOT;
             });
             $grid->column('file','文件');
             $grid->column('status','状态')->display(function ($value){
-                return LTBackup::getRunStateLabel($value);
+                return LTBackup::getRunStateLabel($value,$this->id);
             });
             $grid->actions(function (Actions $actions){
                 $actions->disableEdit();
                 $actions->setResource('/admin/ltbackup-log');
+                $actions->disableView();
+                $actions->prepend((new RunLogButton( $actions->getKey()))->render());
             });
 
         })->get();

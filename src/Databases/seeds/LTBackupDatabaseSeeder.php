@@ -101,7 +101,7 @@ class LTBackupDatabaseSeeder extends Seeder
                 'name'        => 'ltbackup_dir',
                 'cname'       => '备份存储目录',
                 'form'        => 'text',
-                'plainValue'  =>  base_path('backup'),
+                'plainValue'  =>  '/backup',
                 'extra'       =>  json_encode(['help'=>'备份文件存储目录，如果目录不存在，则自动创建']),
             ],
             [
@@ -127,7 +127,8 @@ class LTBackupDatabaseSeeder extends Seeder
                 'cname'       => '任务超时时间(分钟)',
                 'form'        => 'number',
                 'plainValue'  => '3',
-                'extra'       =>  json_encode(['help'=>'每次执行任务的超时时间']),
+                'extra'       =>  json_encode(['help'=>'每次执行任务的超时时间','min'=>1,'max'=>100000]),
+
             ],
             [
                 'type'        => 1,
@@ -172,7 +173,7 @@ class LTBackupDatabaseSeeder extends Seeder
             ],
             [
                 'name' => '备份上传文件',
-                'type' => 3,
+                'type' => -99,
                 'status' => 0,
                 'time_at' => '01:00',
                 'period' => 7,

@@ -16,10 +16,10 @@ class Admin extends  \Encore\Admin\Admin {
     public function __construct()
     {
        self::$baseCss = array_merge(self::$baseCss,[
-           'vendor/laravel-admin-ltbackup/layer/theme/default/layer.css',
+           'vendor/laravel-admin-backup/layer/theme/default/layer.css',
        ]);
        self::$baseJs = array_merge(self::$baseJs,[
-           'vendor/laravel-admin-ltbackup/layer/layer.js',
+           'vendor/laravel-admin-backup/layer/layer.js',
        ]);
     }
 

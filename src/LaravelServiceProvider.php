@@ -21,10 +21,20 @@ class LaravelServiceProvider extends  ServiceProvider
      */
     public function boot()
     {
-        $this->setupConfig();
-        $this->loadViewsFrom(__DIR__.'/Resources/views', 'ltbackup');
+
+        $this->loadViewsFrom(__DIR__.'/Resources/views', 'laravel-admin-backup');
+
+        if (method_exists($this, 'loadViewsFrom')) {
+            $this->loadViewsFrom(__DIR__.'/Resources/views', 'laravel-admin-backup');
+        }
+        if (method_exists($this, 'publishes')) {
+            $this->publishes([
+                __DIR__.'/Resources/views' => base_path('/resources/views/vendor/laravel-admin-backup'),
+            ], 'views');
+            $this->setupConfig();
+        }
         $this->loadMigrationsFrom(__DIR__.'/Databases/migrations');
-        $this->publishes([__DIR__.'/Resources/assets' => public_path('vendor/laravel-admin-ltbackup')], 'ltbackup-assets');
+        $this->publishes([__DIR__.'/Resources/assets' => public_path('vendor/laravel-admin-backup')], 'laravel-admin-backup');
         $this->loadRoutesFrom(__DIR__.'/Route/routes.php');
     }
 
@@ -46,13 +56,13 @@ class LaravelServiceProvider extends  ServiceProvider
         $configSource = realpath(__DIR__ . '/config.php');
         if ($this->app instanceof LaravelApplication && $this->app->runningInConsole()) {
             $this->publishes([
-                $configSource => config_path('ltbackup.php')
+                $configSource => config_path('laravel-admin-backup.php')
             ]);
         }
 //        elseif ($this->app instanceof LumenApplication) {
 //            $this->app->configure('ltbackup');
 //        }
-        $this->mergeConfigFrom($configSource, 'ltbackup');
+        $this->mergeConfigFrom($configSource, 'laravel-admin-backup');
 
     }
 

@@ -13,6 +13,8 @@ Route::group([
     'middleware' => ['web', 'admin']
 ], function (Router $router) {
     $router->resource('ltbackup-rule','\LTBackup\Extension\Controllers\LTBackupRuleController');
+    $router->post('ltbackup-refresh','\LTBackup\Extension\Controllers\LTBackupRunLogController@refresh');
+    $router->get('ltbackup-log-view','\LTBackup\Extension\Controllers\LTBackupRunLogController@logView');
     $router->resource('ltbackup-log','\LTBackup\Extension\Controllers\LTBackupRunLogController');
     $router->match(['get','post'],'ltbackup-setting', '\LTBackup\Extension\Controllers\LTBackupSettingController@index');
 });

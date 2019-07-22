@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Facade;
  * @method  static  string getRunStateLabel($state);
  * @method static void run(bool $all);
  * @method  static string getNextRunTime($time_at);
+ * @method  static  void  runLog($id,$log)
  * @package LTBackup\Extension\Facades
  */
 class LTBackup extends  Facade
