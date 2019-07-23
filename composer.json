@@ -4,8 +4,7 @@
     "type": "tools",
     "minimum-stability": "dev",
     "require": {
-        "encore/laravel-admin": "^1.6",
-        "spatie/laravel-backup":"^6.2",
+        "encore/laravel-admin": "~1.6.6",
         "php": "^7.0.3"
     },
     "license": "MIT",
