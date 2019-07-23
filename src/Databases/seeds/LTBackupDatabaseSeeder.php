@@ -45,7 +45,7 @@ class LTBackupDatabaseSeeder extends Seeder
             [
                 'parent_id' => $parentId,
                 'order'     => 3,
-                'title'     => '规则&记录',
+                'title'     => '备份规则',
                 'icon'      => 'fa-check',
                 'uri'       => 'ltbackup-rule',
             ],
@@ -74,7 +74,7 @@ class LTBackupDatabaseSeeder extends Seeder
             [
                 'id'            =>  2,
                 'sort'         =>  1,
-                'name'          =>  '百度云盘',
+                'name'          =>  '百度网盘',
                 'module'        =>  'backup',
             ],
         ];
@@ -104,14 +104,14 @@ class LTBackupDatabaseSeeder extends Seeder
                 'plainValue'  =>  '/backup',
                 'extra'       =>  json_encode(['help'=>'备份文件存储目录，如果目录不存在，则自动创建']),
             ],
-            [
-                'type'        => 1,
-                'name'        => 'ltbackup_local',
-                'cname'       => '服务器保留备份',
-                'form'        => 'switch',
-                'plainValue'  => 'on',
-                'extra'       =>  json_encode(['help'=>'服务器本地是否需要保留备份文件']),
-            ],
+//            [
+//                'type'        => 1,
+//                'name'        => 'ltbackup_local',
+//                'cname'       => '服务器保留备份',
+//                'form'        => 'switch',
+//                'plainValue'  => 'on',
+//                'extra'       =>  json_encode(['help'=>'服务器本地是否需要保留备份文件']),
+//            ],
 
             [
                 'type'        => 1,
@@ -133,10 +133,10 @@ class LTBackupDatabaseSeeder extends Seeder
             [
                 'type'        => 1,
                 'name'        => 'ltbackup_to_baiduyun',
-                'cname'       => '备份上传百度云盘',
+                'cname'       => '备份上传百度网盘',
                 'form'        => 'switch',
                 'plainValue'  => 'on',
-                'extra'       =>  json_encode(['help'=>'使用此功能请先配置百度云盘']),
+                'extra'       =>  json_encode(['help'=>'使用此功能请先配置百度网盘']),
             ],
         ];
         foreach ($settings as &$setting){
