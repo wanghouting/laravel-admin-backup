@@ -46,7 +46,6 @@ SCRIPT;
         <i class="fa fa-file-word-o" style="line-height:20px;">&nbsp;日志</i>
     </a>
 </div>
- <script type="text/javascript" src="/vendor/laravel-admin-backup/jquery/jquery.min.js"></script>
 
 EOT;
     }

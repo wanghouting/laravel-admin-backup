@@ -153,6 +153,7 @@ class LTBackupDatabaseSeeder extends Seeder
                 'status' => 1,
                 'time_at' => '01:00',
                 'period' => -1,
+                'period_days' => 0,
                 'path' => '',
             ],
             [
@@ -161,6 +162,7 @@ class LTBackupDatabaseSeeder extends Seeder
                 'status' => 0,
                 'time_at' => '01:00',
                 'period' => 0,
+                'period_days' => 0,
                 'path' => '',
             ],
             [
@@ -168,7 +170,8 @@ class LTBackupDatabaseSeeder extends Seeder
                 'type' => 2,
                 'status' => 0,
                 'time_at' => '01:00',
-                'period' => 7,
+                'period' => -99,
+                'period_days' => 7,
                 'path' => '',
             ],
             [
@@ -176,7 +179,8 @@ class LTBackupDatabaseSeeder extends Seeder
                 'type' => -99,
                 'status' => 0,
                 'time_at' => '01:00',
-                'period' => 7,
+                'period' => -99,
+                'period_days' => 7,
                 'path' => public_path(),
             ],
         ];

@@ -233,7 +233,8 @@ EOT;
                        || $form->period != $form->model()->period
                        || ($form->period == -99 &&  $form->period_days != $form->model()->period_days )){
                         //变化了，需要重置next_run
-                       $form->model()->next_run = LTBackup::getNextRunTime($form->time_at);
+                       $time_at =  $form->time_at ?? $form->model()->time_at;
+                       $form->model()->next_run = LTBackup::getNextRunTime($time_at);
                    }
                 }else{
                     $form->model()->next_run = LTBackup::getNextRunTime($form->time_at);
