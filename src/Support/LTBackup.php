@@ -14,6 +14,8 @@ use LTBackup\Extension\Facades\WebConsole;
  */
 class LTBackup{
     const LOG_END ='@@++end++@@';
+    const EXTRA_PATH = 'ltbackup';
+    const LOG_DIR = 'sslog';
 
     private $supportDriver = [
         'mysql'
@@ -23,20 +25,145 @@ class LTBackup{
     {
         switch ($state){
             case RunLog::RUN_STATE_WAITING:
-                return '<label class="label label-primary" data-id="'.$id.'" data-value="'.$state.'"><i class="fa fa-spinner fa-pulse "></i> 正在等待</label>';
+                return '<label class="label status label-primary" data-id="'.$id.'" data-value="'.$state.'"><i class="fa fa-spinner fa-pulse "></i> 正在等待</label>';
             case RunLog::RUN_STATE_RUNNING:
-                return '<label class="label label-info"  data-id="'.$id.'" data-value="'.$state.'"><i class="fa fa-spinner fa-pulse "></i> 正在执行</label>';
+                return '<label class="label status label-info"  data-id="'.$id.'" data-value="'.$state.'"><i class="fa fa-spinner fa-pulse "></i> 正在执行</label>';
             case RunLog::RUN_STATE_SUCCESS:
-                return '<label class="label label-success" data-id="'.$id.'" data-value="'.$state.'" > 执行完成</label>';
+                return '<label class="label status label-success" data-id="'.$id.'" data-value="'.$state.'" > 执行完成</label>';
             case RunLog::RUN_STATE_FAIL:
-                return '<label class="label label-danger" data-id="'.$id.'" data-value="'.$state.'"> 执行失败</label>';
+                return '<label class="label status label-danger" data-id="'.$id.'" data-value="'.$state.'"> 执行失败</label>';
             case RunLog::RUN_STATE_STOPED:
-                return '<label class="label label-warning" data-id="'.$id.'" data-value="'.$state.'"> 用户停止</label>';
+                return '<label class="label status label-warning" data-id="'.$id.'" data-value="'.$state.'"> 用户停止</label>';
             default:
-                return '<label class="label label-warning" data-id="'.$id.'" data-value="'.$state.'"> 未知</label>';
+                return '<label class="label status label-warning" data-id="'.$id.'" data-value="'.$state.'"> 未知</label>';
         }
     }
 
+    //解决laravel-admin 1.6版本td 没有class属性的问题
+    public function getColumnLabel($column,$value,$id = 0){
+
+        switch ($column){
+            case 'file':
+                if(!empty($value) && !file_exists($value)){
+                    return '<label class="'.$column.'" style="font-weight: normal;"><s>'.$value.'</s></label>';
+                }
+                $label = '<label class="'.$column.'" style="font-weight: normal;">'.$value.'</label>';
+                return  '<a href="/admin/ltbackup-download?id='.$id.'" target="_blank">' . $label . '</a>';
+            case 'filesize':
+                if(!empty($value)) {
+                    return $label = '<label class="' . $column . '" style="font-weight: normal;">' . trans_byte($value) . '</label>';
+                }
+                break;
+            default:
+                break;
+        }
+
+        return '<label class="'.$column.'" style="font-weight: normal;">'.$value.'</label>';
+    }
+
+    public function getBackupDir($addExtra = true){
+       $path = SettingFacade::get('ltbackup_dir','/var/data/backup');
+       $path .= $addExtra ? '/'.self::EXTRA_PATH : '';
+        if(!is_dir($path)){
+           @mkdir($path,0777,true);
+       }
+       return $path;
+    }
+
+    public function clear(){
+        if(SettingFacade::get('ltbackup_status') != 'on') return;
+        $backupPath = $this->getBackupDir().'/';
+        $expire = SettingFacade::get('ltbackup_date',99999999) * 24 * 60 * 60;
+        $expire = 10;
+        //先清理备份文件
+        $this->doClear($backupPath,$expire,[self::LOG_DIR]);
+        //在清理日志文件
+        $this->doClear($backupPath.self::LOG_DIR.'/',$expire);
+
+    }
+
+
+    private function doClear($dir,$expire,$except = []){
+        $except = array_merge(['.','..'],$except);
+        if(is_dir($dir)){
+            //先清理备份文件
+            $p = scandir($dir);
+            foreach($p as $val){
+                //排除目录中的.和..
+                if(!in_array($val,$except)){
+                    $file = $dir.$val;
+                    $times = time()-filemtime($file);
+                    if($times > $expire) {
+                        if (is_dir($file)) {
+                            delete_dir($file . '/');
+                        } else {
+                            //如果是文件直接删除
+                            unlink($file);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+
+    public function addRun($rule)
+    {
+        $isInstance = true;
+        if(!$rule instanceof  Rule){
+            $rule = Rule::find($rule);
+            $isInstance = false;
+        }
+        if($rule){
+            DB::transaction(function () use ($rule,$isInstance){
+                    $rule->run_times += 1;
+                    $res =  RunLog::create(['rule_id'=>$rule->id,'file'=>$this->createFile($rule->type)]);
+                    $this->runLog($res->id,'队列等待中...');
+                    if($isInstance){
+                        //如果这个只执行一次
+                        if($rule->period == 0){
+                            $rule->status = 0;
+                        }else{
+                            $rule->next_run = $this->getNextRunTime($rule->time_at);
+                        }
+                    }
+                    $rule->save();
+            });
+
+            !$isInstance && $this->run(false);
+        }else{
+            throw  new \Exception('规则存在');
+        }
+    }
+
+    public function checkNeedRun(){
+        $needRun =  Rule::query()->where('status',1)->where('next_run','<=',date('Y-m-d H:i:s'))->get();
+        foreach ($needRun as $rule){
+            $this->addRun($rule);
+        }
+    }
+
+    private function createFile($type){
+        $filename =  $this->getBackupDir(). '/'.date('Ymd').'/' .date('YmdHis');
+        switch ($type){
+            case Rule::RULE_TYPE_ALL:
+                $filename .= '_all.tar.gz';
+                break;
+            case Rule::RULE_TYPE_CODE:
+                $filename .= '_code.tar.gz';
+                break;
+            case Rule::RULE_TYPE_DB:
+                $filename .= '_db.sql.gz';
+                break;
+            case Rule::RULE_TYPE_DIR:
+                $filename .= '_dir.tar.gz';
+                break;
+            default:
+                $filename .= '.tar.gz';
+                break;
+        }
+        return $filename ;
+    }
     /**
      * @param bool $all
      */
@@ -45,25 +172,7 @@ class LTBackup{
         if(SettingFacade::get('ltbackup_status') != 'on') return;
 
         try{
-            if($all){
-                $needRun =  Rule::query()->where('status',1)->where('next_run','<=',date('Y-m-d H:i:s'))->get();
-                foreach ($needRun as $rule){
-                    DB::transaction(function () use ($rule){
-                        $insertData = [
-                            'rule_id' => $rule->id,
-                            'file' =>  SettingFacade::get('ltbackup_dir','/backups').'/'.date('YmdHis').'.tar.gz'
-                        ];
-                        RunLog::query()->create($insertData);
-                        //如果这个只执行一次
-                        if($rule->period == 0){
-                            $rule->status = 0;
-                        }else{
-                            $rule->next_run = \LTBackup\Extension\Facades\LTBackup::getNextRunTime($rule->time_at);
-                        }
-                        $rule->save();
-                    });
-                }
-            }
+            $all && $this->checkNeedRun();
             $isRunning =  RunLog::where('status',RunLog::RUN_STATE_RUNNING)->first();
             if(!$isRunning){
                 $waitRun =  RunLog::where('status',RunLog::RUN_STATE_WAITING)->orderBy('created_at','asc')->first();
@@ -86,7 +195,6 @@ class LTBackup{
     }
 
 
-
     /**
      * 开始执行任务
      * @param RunLog $log
@@ -95,7 +203,6 @@ class LTBackup{
 
         try{
             //先看下备份目录在不在,不存在则创建
-            $backupDir = SettingFacade::get('ltbackup_dir','/backups');
             $filePathArr = explode('/',$log->file);
             unset($filePathArr[count($filePathArr ) -1]);
             $filePath =   implode('/',$filePathArr);
@@ -250,6 +357,7 @@ class LTBackup{
      */
     private function success(RunLog $log, $message){
         $log->status = RunLog::RUN_STATE_SUCCESS;
+        $log->filesize = filesize($log->file);
         $log->save();
         $this->runLog($log->id, 'info: ' . $message);
         $this->runLog($log->id,self::LOG_END);
@@ -274,9 +382,14 @@ class LTBackup{
         $this->run(true);
     }
 
+    public function getLogFile($id){
+        $logdir =   $this->getBackupDir().'/'.self::LOG_DIR.'/';
+        if(!is_dir($logdir)) @mkdir($logdir,0777,true);
+        return $logdir .$id.'_backup.log';
+    }
 
     public function runLog($id,$log){
-        file_put_contents(storage_path('logs/backup/'.$id.'_backup.log'),$log."\n",8);
+        file_put_contents($this->getLogFile($id),$log."\n",8);
     }
 
     public function getNextRunTime($time_at){

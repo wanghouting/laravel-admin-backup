@@ -3,6 +3,7 @@
 namespace LTBackup\Extension\Controllers;
 
 use Encore\Admin\Admin;
+use function foo\func;
 use Illuminate\Http\Request;
 use LTBackup\Extension\Controllers\Base\AdminBaseController;
 use LTBackup\Extension\Entities\Rule;
@@ -29,112 +30,59 @@ class LTBackupRuleController extends AdminBaseController
 
     public function __construct()
     {
-        $this->header = '备份规则';
+        $this->header = '备份规则&记录';
     }
 
 
     public function index(Content $content)
     {
-        $gridLog = $this->gridLog();
-        $this->reloadData($gridLog);
-        $content = $content->init($this->header,trans('admin.list'),$this->grid()->render().$gridLog->render());
-        $error = '';
-        if(has_disabled_functions('exec'))
-            $error = 'exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec';
 
-        $backupDir = SettingFacade::get('ltbackup_dir','/backups');
-        if(!is_dir($backupDir)){
-            @mkdir($backupDir);
-        }
+        $this->iframeAutoHegiht();
+        $grid = '<iframe src="/admin/ltbackup-log" id="external-frame"  width="100%" height="100%" style=" border: 0;min-height: 1000px " scrolling="no"></iframe>';
+
+        $content = $content->init($this->header,trans('admin.list'),$this->grid()->render().$grid);
+        $error = '';
+//        if(has_disabled_functions('exec'))
+//            $error = 'exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec';
+
+        $backupDir = LTBackup::getBackupDir(false);
         if(!is_writeable($backupDir))
-            $error .= "</br></br> ".$backupDir.'目录不可写';
-        if(!empty($error))
+            $error .= $backupDir.'目录不可写,备份功能将自动关闭';
+        if(is_win()){
+            $error .=  empty($error) ? '' : "; " ;
+            $error .= '暂时只支持linux/mac系统,备份功能将自动关闭';
+        }
+        if(!empty($error)){
             $content = $content->withError('警告',$error);
+            if(SettingFacade::get('ltbackup_status') == 'on'){
+                SettingFacade::set('ltbackup_status','off');
+            }
+        }else{
+            if(SettingFacade::get('ltbackup_status') != 'on'){
+                SettingFacade::set('ltbackup_status','on');
+            }
+        }
+            
         return $content;
     }
 
 
-    private function reloadData(Grid $grid){
-        $token = csrf_token();
-        $script = <<<EOT
-         
-          function refresh() { 
-            var needUpdateCount = 0;
-            var needUpdateElement  = [];
-           $("#{$grid->tableID } tbody tr").each(function(){
-              var status =  $(this).find('.column-status').find('label').data('value');
-              if(status <= 1 ){
-                   
-                var id =  $(this).find('.column-status').find('label').data('id');
-                 needUpdateElement[id] = $(this);
-              } 
-          });
-          if(needUpdateElement.length > 0){
-          
-            var element = needUpdateElement.pop(); 
-            var id =  element.find('.column-status').find('label').data('id');
-            var status =  element.find('.column-status').find('label').data('value');
-           
-             var intv = setInterval(function(){
-                $.ajax({
-                    url:"/admin/ltbackup-refresh",
-                    dataType:"json",
-                    async:true,
-                    data:{"id":id,"status":status,"_token":"{$token}"},
-                    type:"POST",
-                    success:function(req){
-                        if(req.code == 200){
-                        console.log(req.data.status);
-                            if(status != req.data.status){//更新数据
-                                 element.find('.column-running_at').text(req.data.running_at);
-                                 var statusLabel = '';
-                                switch(req.data.status){
-                                    case 1:
-                                        statusLabel = '<label class="label label-info" data-id="'+id+'" data-value="'+req.data.status+'"><i class="fa fa-spinner fa-pulse "></i> 正在执行</label>';
-                                        element.find('.column-status').empty().append(statusLabel);
-                                        break;
-                                    case 2:
-                                        element.find('.column-updated_at').text(req.data.updated_at);
-                                        statusLabel = '<label class="label label-success" data-id="'+id+'" data-value="'+req.data.status+'"> 执行完成</label>';
-                                        element.find('.column-status').empty().append(statusLabel);   
-                                        break;
-                                    case 3:
-                                        element.find('.column-updated_at').text(req.data.updated_at);
-                                        statusLabel = '<label class="label label-danger" data-id="'+id+'" data-value="'+req.data.status+'"> 执行失败</label>';
-                                        element.find('.column-status').empty().append(statusLabel);  
-                                        break;
-                                    case 4:
-                                        element.find('.column-updated_at').text(req.data.updated_at);
-                                        statusLabel = '<label class="label label-warning" data-id="'+id+'" data-value="'+req.data.status+'"> 用户停止</label>';
-                                        element.find('.column-status').empty().append(statusLabel);
-                                        break;    
-                                    default:
-                                        element.find('.column-updated_at').text(req.data.updated_at);
-                                        statusLabel = '<label class="label label-warning" data-id="'+id+'" data-value="'+req.data.status+'"> 未知</label>';
-                                        element.find('.column-status').empty().append(statusLabel);
-                                        break;            
-                                }
-                            }
-                            
-                            if(req.data.status >= 2){
-                                clearInterval(intv);
-                                refresh();
-                            }
-                        }
-                     },
-                    error:function(){
+    private function iframeAutoHegiht(){
+        $script= <<<EOF
+            function setIframeHeight(iframe) {
+                if (iframe) {
+                    var iframeWin = iframe.contentWindow || iframe.contentDocument.parentWindow;
+                    if (iframeWin.document.body) {
+                        iframe.height = iframeWin.document.documentElement.scrollHeight || iframeWin.document.body.scrollHeight;
                     }
-
-                });            
-             },5000)
-           }
-        }
-            
-        refresh();
-EOT;
+                }
+            };
+            window.onload = function () {
+                setIframeHeight(document.getElementById('external-frame'));
+            };
+EOF;
         Admin::script($script);
     }
-
 
     /**
      * Make a grid builder.
@@ -182,35 +130,6 @@ EOT;
     }
 
 
-    /**
-     * 运行日志记录
-     * @return Grid
-     */
-    protected  function gridLog(){
-        return   GridBuilder::buildGrid(RunLog::class,function (Grid $grid){
-            $grid->model()->orderBy('id','desc');
-            $grid->disableCreateButton();
-            $grid->id('ID');
-            $grid->column('rule.name','规则名称');
-            $grid->column('created_at','创建时间');
-            $grid->column('running_at','执行时间');
-            $grid->column('updated_at','结束时间')->display(function ($value) {
-                return  $this->status <= 1 ? '' : $value;
-            });
-            $grid->column('file','文件');
-            $grid->column('status','状态')->display(function ($value){
-                return LTBackup::getRunStateLabel($value,$this->id);
-            });
-            $grid->actions(function (Actions $actions){
-                $actions->disableEdit();
-                $actions->setResource('/admin/ltbackup-log');
-                $actions->disableView();
-                $actions->prepend((new RunLogButton( $actions->getKey()))->render());
-            });
-
-        })->get();
-
-    }
 
     protected function form()
     {

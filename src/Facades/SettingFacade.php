@@ -24,6 +24,8 @@ use LTBackup\Extension\Support\SettingSupport;
  * @method static Builder[]|\Illuminate\Database\Eloquent\Collection findByMany(array $ids)
  * @method static bool clearCache()
  * @method static mixed|void deleteOrFailed($id)
+ * @method static set($key, $value)
+ * @method static add($key, $value)
  * @package LTBackup\Extension\Facades
  */
 class SettingFacade extends Facade

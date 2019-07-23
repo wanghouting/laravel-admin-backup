@@ -60,11 +60,27 @@ class SettingViewBuilder {
 
         //构建表单
         $form = FormBuilder::buildFrom($model,function (Form $form) use ($settings,$actionUri){
-            if(has_disabled_functions('exec'))
-                $form->iNotice('exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec','<font color="#db7093">注意</font>');
-            $backupDir = SettingFacade::get('ltbackup_dir','/backups');
-            if(!is_writeable($backupDir))
-                $form->iNotice($backupDir.'目录不可写','<font color="#db7093">注意</font>');
+//            if(has_disabled_functions('exec'))
+//                $form->iNotice('exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec','<font color="#db7093">注意</font>');
+            $backupDir = \LTBackup\Extension\Facades\LTBackup::getBackupDir(false);
+            $hasErr = false;
+            if(!is_writeable($backupDir)){
+                $hasErr = true;
+                $form->iNotice($backupDir.'目录不可写,备份功能将自动关闭','<font color="#db7093">注意</font>');
+            }
+            if(is_win()){
+                $hasErr = true;
+                $form->iNotice($backupDir.'暂时只支持linux/mac系统,备份功能将自动关闭','<font color="#db7093">注意</font>');
+            }
+            if($hasErr){
+                if(SettingFacade::get('ltbackup_status') == 'on'){
+                    SettingFacade::set('ltbackup_status','off');
+                }
+            }else{
+                if(SettingFacade::get('ltbackup_status') != 'on'){
+                    SettingFacade::set('ltbackup_status','on');
+                }
+            }
 
             if(count($settings) > 0)
                 $form->hidden('type')->value($settings[0]->type);

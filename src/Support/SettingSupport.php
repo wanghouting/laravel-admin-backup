@@ -56,13 +56,24 @@ class SettingSupport
      */
     public function set($key, $value)
     {
+        return $this->repository->where('name' , $key)->update(['plainValue' => $value]);
+    }
+    
+
+    /**
+     * Set a given configuration value.
+     *
+     * @param  string $key
+     * @param  mixed  $value
+     * @return \Modules\Setting\Entities\Setting
+     */
+    public function add($key, $value)
+    {
         return $this->repository->create([
             'name' => $key,
             'plainValue' => $value,
         ]);
     }
-
-
 
 
 

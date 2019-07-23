@@ -11,7 +11,7 @@ use Encore\Admin\Layout\Content as BaseContent;
  */
 class Content extends BaseContent
 {
-
+    public $view;
     /**
      * @return string
      * @throws \Throwable
@@ -24,8 +24,14 @@ class Content extends BaseContent
             'breadcrumb'  => $this->breadcrumb,
             'content'     => $this->build(),
         ];
-        return view('admin::content', $items)->render();
+        $view = $this->view ?? 'admin::content';
+        return view($view, $items)->render();
     }
+
+    public function setView($view){
+        $this->view = $view;
+    }
+
 
     /**
      * @param $header
@@ -34,11 +40,11 @@ class Content extends BaseContent
      * @param string $breadcrumb
      * @return $this
      */
-    public function init($header, $description,$body = '', $breadcrumb = '') {
+    public function init($header, $description,$body = '', $breadcrumb =  null) {
         !empty($header) && $this->header = $header;
         !empty($description) && $this->description = $description;
         !empty($body) && $this->body($body);
-        !empty($breadcrumb) && $this->breadcrumb = $breadcrumb;
+        $breadcrumb && $this->breadcrumb = $breadcrumb;
         return $this;
     }
 }

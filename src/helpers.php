@@ -11,7 +11,7 @@ if(! function_exists('delete_dir')){
                         //如果是目录则递归子目录，继续操作
                         if(is_dir($path.$val)){
                             //子目录中操作删除文件夹和文件
-                            deldir($path.$val.'/');
+                            delete_dir($path.$val.'/');
                             //目录清空后删除空文件夹
                             @rmdir($path.$val.'/');
                         }else{
@@ -20,8 +20,8 @@ if(! function_exists('delete_dir')){
                         }
                     }
                 }
+                @rmdir($path);
             }
-
     }
 }
 
@@ -51,5 +51,48 @@ if (! function_exists('get_switch_state')) {
             ]
         ];
         return array_key_exists($type,$arr) ? $arr[$type] : $arr[0];
+    }
+}
+
+if (! function_exists('trans_byte')) {
+    function trans_byte($byte)
+    {
+
+        $KB = 1024;
+
+        $MB = 1024 * $KB;
+
+        $GB = 1024 * $MB;
+
+        $TB = 1024 * $GB;
+
+        if ($byte < $KB) {
+
+            return $byte . "B";
+
+        } elseif ($byte < $MB) {
+
+            return round($byte / $KB, 2) . "KB";
+
+        } elseif ($byte < $GB) {
+
+            return round($byte / $MB, 2) . "MB";
+
+        } elseif ($byte < $TB) {
+
+            return round($byte / $GB, 2) . "GB";
+
+        } else {
+
+            return round($byte / $TB, 2) . "TB";
+
+        }
+
+    }
+}
+
+if(!function_exists('is_win')){
+    function is_win(){
+        return  strtoupper(substr(PHP_OS,0,3))==='WIN';
     }
 }

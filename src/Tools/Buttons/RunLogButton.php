@@ -26,6 +26,7 @@ class RunLogButton extends AbstractTool
                                   type: 2,
                                   skin: 'layui-layer-rim-blank', //加上边框
                                   area: ['640px', '420px'], //宽高
+                                  offset: 't',
                                   content: '/admin/ltbackup-log-view?id=' + {$this->id}
                        });
         });

@@ -45,7 +45,7 @@ class LTBackupDatabaseSeeder extends Seeder
             [
                 'parent_id' => $parentId,
                 'order'     => 3,
-                'title'     => '备份规则',
+                'title'     => '规则&记录',
                 'icon'      => 'fa-check',
                 'uri'       => 'ltbackup-rule',
             ],

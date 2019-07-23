@@ -46,7 +46,6 @@ class InstallCommand extends Command
      */
     public function initDatabase()
     {
-        !is_dir(storage_path('logs/backup')) && mkdir(storage_path('logs/backup'),0777,true);
         $this->call('migrate');
         $this->call('db:seed', ['--class' => LTBackupDatabaseSeeder::class]);
         $this->call('vendor:publish', ['--provider'=> "LTBackup\Extension\LaravelServiceProvider"]);

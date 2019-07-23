@@ -40,7 +40,7 @@ class IRadio extends Field
         }
         $this->id = 'id_'.mt_rand(10000,99999);
         $this->options = (array) $options;
-        $this->setView('ltbackup::form.radio');
+        $this->setView('laravel-admin-backup::form.radio');
         return $this;
     }
 

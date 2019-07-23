@@ -18,6 +18,7 @@ class CreateLtbackupLogTable extends Migration
             $table->tinyInteger('rule_id')->default(0)->comment('规则id');
             $table->tinyInteger('status')->default(0)->comment('执行状态：0:等待中，1:运行中，2成功,3失败,4停止');
             $table->string('file')->default('')->comment('备份文件');
+            $table->unsignedInteger('filesize')->default(0)->comment('备份文件压缩包大小');
             $table->dateTime('running_at')->nullable();
             $table->timestamps();
         });

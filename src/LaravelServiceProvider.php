@@ -6,6 +6,7 @@ namespace LTBackup\Extension;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\Application as LaravelApplication;
 use LTBackup\Extension\Console\Commands\BackupCommand;
+use LTBackup\Extension\Console\Commands\ClearCommand;
 use LTBackup\Extension\Console\Commands\InstallCommand;
 
 //use Laravel\Lumen\Application as LumenApplication;
@@ -14,7 +15,8 @@ class LaravelServiceProvider extends  ServiceProvider
 {
     protected $commands = [
             InstallCommand::class,
-            BackupCommand::class
+            BackupCommand::class,
+            ClearCommand::class
         ];
      /**
      * Booting the package.
