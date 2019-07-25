@@ -39,6 +39,20 @@ class LTBackup{
         }
     }
 
+    public function  getFtpStateLabel($state,$id){
+        switch ($state){
+            case RunLog::FTP_STATUS_NO_OPEN:
+                return '<label class="label ftp_status label-primary"><i class="fa fa-exclamation-triangle"> </i> 尚未开启</label>';
+            case RunLog::FTP_STATUS_SUCCESS:
+                return '<label class="label ftp_status label-success "><a href="/admin/ltbackup-download?id='.$id.'&type=ftp" style="color: #FFFFFF" target="_blank"> <i class="fa fa-download"> </i> 点击下载</a></label>';
+            case RunLog::FTP_STATUS_FAIL:
+                return '<label class="label ftp_status label-danger"  ><i class="fa fa-close"> </i> 上传失败</label>';
+            case RunLog::FTP_STATUS_STOPED:
+                return '<label class="label ftp_status label-warning"><i class="fa fa-stop"> </i> 用户停止</label>';
+            default:
+                return '<label class="label ftp_status label-warning"></label>';
+        }
+    }
     //解决laravel-admin 1.6版本td 没有class属性的问题
     public function getColumnLabel($column,$value,$id = 0){
 
@@ -68,6 +82,15 @@ class LTBackup{
            @mkdir($path,0777,true);
        }
        return $path;
+    }
+
+    public function getTmpDir(){
+        $path = $this->getBackupDir().'/'.'tmp';
+        if(!is_dir($path)){
+            @mkdir($path,0777,true);
+        }
+        return $path;
+
     }
 
     public function clear(){
@@ -117,8 +140,9 @@ class LTBackup{
         if($rule){
             DB::transaction(function () use ($rule,$isInstance){
                     $rule->run_times += 1;
-                    $res =  RunLog::create(['rule_id'=>$rule->id,'file'=>$this->createFile($rule->type)]);
-                    $this->runLog($res->id,'队列等待中...');
+                    $run_type = $isInstance ? RunLog::RUN_TYPE_AUTO : RunLog::RUN_TYPE_MANUAL;
+                    $res =  RunLog::create(['rule_id'=>$rule->id,'run_type'=>$run_type,'file'=>$this->createFile($rule->type)]);
+                    $this->runLog($res->id,'队列等待中...',true);
                     if($isInstance){
                         //如果这个只执行一次
                         if($rule->period == 0){
@@ -129,11 +153,15 @@ class LTBackup{
                     }
                     $rule->save();
             });
-
-            !$isInstance && $this->run(false);
+          //  !$isInstance && $this->run(false);
         }else{
             throw  new \Exception('规则存在');
         }
+    }
+
+    private function getAutoBackupStatus(){
+
+        return SettingFacade::get('ltbackup_status') == 'on';
     }
 
     public function checkNeedRun(){
@@ -169,10 +197,10 @@ class LTBackup{
      */
     public function run(bool $all)
     {
-        if(SettingFacade::get('ltbackup_status') != 'on') return;
+        $autoRunStatus = $this->getAutoBackupStatus();
 
         try{
-            $all && $this->checkNeedRun();
+            $all && $autoRunStatus && $this->checkNeedRun();
             $isRunning =  RunLog::where('status',RunLog::RUN_STATE_RUNNING)->first();
             if(!$isRunning){
                 $waitRun =  RunLog::where('status',RunLog::RUN_STATE_WAITING)->orderBy('created_at','asc')->first();
@@ -184,16 +212,36 @@ class LTBackup{
                 }
             }else{   //看看有没有过期
                 if(!$isRunning->running_at || (  floor((time() -  strtotime($isRunning->running_at)) / 60 ) >  SettingFacade::get('ltbackup_execute_timeout') )  ){
+                    if(FtpManagerSupport::getInstance()->isFtpOpen())
+                        $isRunning->ftp_status = 2;
                     $this->failed($isRunning,'执行超时！');
                 }
 
             }
 
         }catch (\Exception $e){
-
         }
     }
 
+
+
+    private function ftpUpload(RunLog $log){
+
+        $this->runLog($log->id,'info: 开始上传到ftp服务器....');
+        try{
+            if(FtpManagerSupport::getInstance()->isFtpOpen()){
+                $file = FtpManagerSupport::getInstance()->uploadFile($log->file);
+                $this->runLog($log->id,'info: 上传到ftp服务器完成！');
+                $log->ftp_status = RunLog::FTP_STATUS_SUCCESS;
+                $log->ftp_file = $file;
+            }else{
+                $log->ftp_status = RunLog::FTP_STATUS_NO_OPEN;
+            }
+        }catch (\Exception $e){
+            $log->ftp_status = RunLog::FTP_STATUS_FAIL;
+            $this->runLog($log->id,'warning: '.$e->getMessage(). ',上传到ftp服务器失败！');
+        }
+    }
 
     /**
      * 开始执行任务
@@ -231,6 +279,7 @@ class LTBackup{
                 default:
                     break;
             }
+            $this->ftpUpload($log);
             $this->success($log,'执行成功!');
         }catch (\Exception $e){
             $this->failed($log,$e->getMessage());
@@ -339,13 +388,11 @@ class LTBackup{
 
             $command = 'tar -zcf '. $log->file . ' -C '  .$parentDir .' ' .$childDir ;
         }
-        $this->runLog($log->id,'info: '.$command);
         $this->executeCommand($log,$command);
         $this->runLog($log->id,'info: 备份目录'.$dir.'完成！');
     }
 
     private function executeCommand($log,$command){
-        $this->runLog($log->id,$command);
         $res = WebConsole::execute_command($command);
         $this->runLog($log->id,$res['output']);
     }
@@ -388,8 +435,9 @@ class LTBackup{
         return $logdir .$id.'_backup.log';
     }
 
-    public function runLog($id,$log){
-        file_put_contents($this->getLogFile($id),$log."\n",8);
+    public function runLog($id,$log,$isInit = false){
+        $flag = $isInit ? FILE_TEXT : FILE_APPEND;
+        file_put_contents($this->getLogFile($id),$log.PHP_EOL,$flag);
     }
 
     public function getNextRunTime($time_at){

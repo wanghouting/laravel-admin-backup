@@ -8,7 +8,6 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
 use LTBackup\Extension\Entities\Setting;
 use LTBackup\Extension\Entities\SettingTypes;
-use LTBackup\Extension\Support\FtpManagerSupport;
 use LTBackup\Extension\Tools\Layout\Content;
 use LTBackup\Extension\Facades\SettingBuilder;
 
@@ -85,7 +84,9 @@ class LTBackupSettingController extends Controller
             if(empty($address) || $port == 0 || empty($username) || empty($password)){
                 return response()->json(['code'=>500,'message'=>'连接失败：参数错误']);
             }
-            FtpManagerSupport::getInstance()->testConenct($address,$port,$username,$password);
+            $ftpClient =  new FtpClient();
+            $ftpClient->connect($address, true , $port);
+            $ftpClient->login($username,$password);
             return response()->json(['code'=>200,'message'=>'连接成功！']);
         }catch (\Exception $e){
             return response()->json(['code'=>500,'message'=> '连接失败:'. $e->getMessage()]);

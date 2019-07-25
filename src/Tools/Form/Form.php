@@ -4,6 +4,7 @@ namespace LTBackup\Extension\Tools\Form;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use LTBackup\Extension\Tools\Form\Field\IButton;
 use LTBackup\Extension\Tools\Form\Field\IHidden;
 use LTBackup\Extension\Tools\Form\Field\IHtml;
 use LTBackup\Extension\Tools\Form\Field\INotice;
@@ -36,8 +37,8 @@ class Form extends \Encore\Admin\Form {
         static::$availableFields['iNotice'] = INotice::class;
         static::$availableFields['iRadio'] = IRadio::class;
         static::$availableFields['iHidden'] = IHidden::class;
+        static::$availableFields['button'] = IButton::class;
         $this->model = $model;
-
         $this->builder = new Builder($this);
         if ($callback instanceof Closure) {
             $callback($this);

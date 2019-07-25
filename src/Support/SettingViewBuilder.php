@@ -77,9 +77,9 @@ class SettingViewBuilder {
                     SettingFacade::set('ltbackup_status','off');
                 }
             }else{
-                if(SettingFacade::get('ltbackup_status') != 'on'){
-                    SettingFacade::set('ltbackup_status','on');
-                }
+//                if(SettingFacade::get('ltbackup_status') != 'on'){
+//                    SettingFacade::set('ltbackup_status','on');
+//                }
             }
 
             if(count($settings) > 0)
@@ -104,6 +104,9 @@ class SettingViewBuilder {
                         break;
                     case 'radio':
                         $formInstance = $form->$formType($setting->name,$setting->cname)->value($setting->plainValue)->options($extra->options);
+                        break;
+                    case 'button':
+                        $formInstance = $form->$formType($setting->name,$setting->cname)->value($setting->plainValue);
                         break;
                     default:
                         $formInstance = $form->$formType($setting->name,$setting->cname)->value($setting->plainValue)->required();

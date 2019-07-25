@@ -28,10 +28,26 @@ class SettingSupport
      */
     public function get($name, $default = null)
     {
-
-
         $setting = $this->repository->where('name',$name)->first();
         return $setting !== null ?  $setting->plainValue : $default;
+    }
+    /**
+     * Getting the setting with type
+     * @param  string $type
+     * @return mixed
+     */
+    public function getWithType($type)
+    {
+        return $this->repository->where('type',$type)->get();
+    }
+    /**
+     * Getting the setting
+     * @param  string $name
+     * @return mixed
+     */
+    public function getFull($name)
+    {
+        return $this->repository->where('name',$name)->first();
     }
 
     /**

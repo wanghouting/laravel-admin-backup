@@ -41,14 +41,6 @@ class LTBackupDatabaseSeeder extends Seeder
         InstallLog::create(['menu_id'=>$parentId]);
 
         $subMenus = [
-
-            [
-                'parent_id' => $parentId,
-                'order'     => 3,
-                'title'     => '备份规则',
-                'icon'      => 'fa-check',
-                'uri'       => 'ltbackup-rule',
-            ],
             [
                 'parent_id' => $parentId,
                 'order'     => 3,
@@ -56,6 +48,14 @@ class LTBackupDatabaseSeeder extends Seeder
                 'icon'      => 'fa-cog',
                 'uri'       => 'ltbackup-setting',
             ],
+            [
+                'parent_id' => $parentId,
+                'order'     => 3,
+                'title'     => '规则&记录',
+                'icon'      => 'fa-check',
+                'uri'       => 'ltbackup-rule',
+            ],
+
         ];
         foreach ($subMenus as &$menu){
             $menu['updated_at'] = $date;
@@ -74,7 +74,7 @@ class LTBackupDatabaseSeeder extends Seeder
             [
                 'id'            =>  2,
                 'sort'         =>  1,
-                'name'          =>  '百度网盘',
+                'name'          =>  'ftp设置',
                 'module'        =>  'backup',
             ],
         ];
@@ -91,10 +91,10 @@ class LTBackupDatabaseSeeder extends Seeder
             [
                 'type'        => 1,
                 'name'        => 'ltbackup_status',
-                'cname'       => '备份功能',
+                'cname'       => '自动备份',
                 'form'        => 'switch',
                 'plainValue'  => 'on',
-                'extra'       =>  json_encode(['help'=>'打开或关闭备份功能']),
+                'extra'       =>  json_encode(['help'=>'打开或关闭自动备份功能']),
             ],
             [
                 'type'        => 1,
@@ -131,12 +131,60 @@ class LTBackupDatabaseSeeder extends Seeder
 
             ],
             [
-                'type'        => 1,
-                'name'        => 'ltbackup_to_baiduyun',
-                'cname'       => '备份上传百度网盘',
+                'type'        => 2,
+                'name'        => 'ltbackup_to_ftp',
+                'cname'       => '备份上传ftp',
                 'form'        => 'switch',
-                'plainValue'  => 'on',
-                'extra'       =>  json_encode(['help'=>'使用此功能请先配置百度网盘']),
+                'plainValue'  => 'off',
+                'extra'       =>  json_encode(['help'=>'打开或关闭备份上传ftp功能']),
+            ],
+            [
+                'type'        => 2,
+                'name'        => 'ltbackup_ftp_address',
+                'cname'       => '服务端地址',
+                'form'        => 'text',
+                'plainValue'  => '',
+                'extra'       =>  json_encode([]),
+            ],
+            [
+                'type'        => 2,
+                'name'        => 'ltbackup_ftp_port',
+                'cname'       => '端口号',
+                'form'        => 'number',
+                'plainValue'  => '21',
+                'extra'       =>  json_encode(['min'=>1,'max'=>99999]),
+            ],
+            [
+                'type'        => 2,
+                'name'        => 'ltbackup_ftp_username',
+                'cname'       => '用户名',
+                'form'        => 'text',
+                'plainValue'  => '',
+                'extra'       =>  json_encode([]),
+            ],
+            [
+                'type'        => 2,
+                'name'        => 'ltbackup_ftp_password',
+                'cname'       => '密码',
+                'form'        => 'password',
+                'plainValue'  => '',
+                'extra'       =>  json_encode([]),
+            ],
+            [
+                'type'        => 2,
+                'name'        => 'ltbackup_ftp_upload_path',
+                'cname'       => '上传到目录',
+                'form'        => 'text',
+                'plainValue'  => 'upload',
+                'extra'       =>  json_encode(['help'=>'不需要加上ftp根目录，如果目录不存在则自动创建']),
+            ],
+            [
+                'type'        => 2,
+                'name'        => 'ltbackup_ftp_test_connection',
+                'cname'       => '测试连接',
+                'form'        => 'button',
+                'plainValue'  => 'ltbackup-ftp-test-connection',
+                'extra'       =>  json_encode([]),
             ],
         ];
         foreach ($settings as &$setting){

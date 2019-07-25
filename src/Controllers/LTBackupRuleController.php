@@ -58,9 +58,9 @@ class LTBackupRuleController extends AdminBaseController
                 SettingFacade::set('ltbackup_status','off');
             }
         }else{
-            if(SettingFacade::get('ltbackup_status') != 'on'){
-                SettingFacade::set('ltbackup_status','on');
-            }
+//            if(SettingFacade::get('ltbackup_status') != 'on'){
+//                SettingFacade::set('ltbackup_status','on');
+//            }
         }
             
         return $content;

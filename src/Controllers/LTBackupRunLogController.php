@@ -13,6 +13,7 @@ use LTBackup\Extension\Facades\GridBuilder;
 use LTBackup\Extension\Facades\LTBackup;
 use LTBackup\Extension\Facades\SettingFacade;
 use LTBackup\Extension\Support\DynamicOutputSupport;
+use LTBackup\Extension\Support\FtpManagerSupport;
 use LTBackup\Extension\Tools\Buttons\RunLogButton;
 use LTBackup\Extension\Tools\Grid\Actions;
 use LTBackup\Extension\Tools\Grid\Grid;
@@ -106,9 +107,30 @@ class LTBackupRunLogController extends Controller
                             }
                             
                             if(req.data.status >= 2){
+                                var ftpLabelStatus = '';
+                                switch(req.data.ftp_status){
+                                    case 1:
+                                        ftpLabelStatus = '<label class="label ftp_status label-primary"><i class="fa fa-exclamation-triangle"> </i> 尚未开启</label>';    
+                                        break;
+                                    case 2:
+                                        ftpLabelStatus = '<label class="label ftp_status label-success "><a href="/admin/ltbackup-download?id='+id+'&type=ftp" target="_blank" style="color: #FFFFFF"> <i class="fa fa-download"> </i> 点击下载</a></label>';
+                                        break;
+                                    case 3:
+                                        ftpLabelStatus = '<label class="label ftp_status label-danger"  ><i class="fa fa-close"> </i> 上传失败</label>';   
+                                        break;
+                                    case 4:
+                                        ftpLabelStatus = '<label class="label ftp_status label-warning"><i class="fa fa-stop"> </i> 用户停止</label>';   
+                                        break;
+                                    default:
+                                        break;            
+                                }
+                                 element.find('td label.ftp_status').parent().empty().append(ftpLabelStatus);    
                                 clearInterval(intv);
                                 refresh();
                             }
+                        }else{
+                                clearInterval(intv);
+                                refresh();
                         }
                      },
                     error:function(){
@@ -127,10 +149,17 @@ EOT;
 
     public function fileDownload(Request $request){
         $id = $request->get('id',0);
+        $type = $request->get('type','');
         if(!$id) return false;
         $log =  RunLog::find($id);
-        if(file_exists($log->file)){
+        if(empty($type) && file_exists($log->file)){
             return response()->download($log->file);
+        }else if($type == 'ftp'){
+              $fileArr = explode('/',$log->ftp_file);
+              $fileName = $fileArr[count($fileArr) - 1];
+              $distFile = LTBackup::getTmpDir() . '/ftp_' .$fileName;
+             file_put_contents($distFile,FtpManagerSupport::getInstance()->downloadFile($log->ftp_file)) ;
+             return response()->download($distFile);
         }
         return  false;
 
@@ -145,6 +174,9 @@ EOT;
             $grid->disableCreateButton();
             $grid->id('ID');
             $grid->column('rule.name','规则名称');
+            $grid->column('run_type','触发方式')->display(function ($value){
+                return $value == RunLog::RUN_TYPE_AUTO ? '<label class="label label-primry">定时备份</label>': '<label class="label label-warning">手动执行</label>';
+            });
             $grid->column('created_at','创建时间');
             $grid->column('running_at','执行时间')->display(function ($value){
                 return LTBackup::getColumnLabel('running_at',$value);
@@ -153,14 +185,19 @@ EOT;
                 $value =   $this->status <= 1 ? '' : $value;
                 return LTBackup::getColumnLabel('updated_at',$value);
             });
-            $grid->column('file','文件(点击下载;有删除线的文件已被删除或过期被清理)')->display(function ($value){
+            $grid->column('file','本地文件(点击下载;有删除线的文件已被删除或过期被清理)')->display(function ($value){
                 $value = $this->status == RunLog::RUN_STATE_SUCCESS  ? $value : '';
                 return  LTBackup::getColumnLabel('file',$value,$this->id);
+            });
+            
+            $grid->column('ftp_status','ftp上传')->display(function ($value){
+                return LTBackup::getFtpStateLabel($value,$this->id);
             });
             $grid->column('filesize','文件大小')->display(function($value){
                 $value = $this->status == RunLog::RUN_STATE_SUCCESS  ? ( $value == 0 ? '' : $value) : '';
                 return  LTBackup::getColumnLabel('filesize',$value);
             });
+
             $grid->column('status','状态')->display(function ($value){
                 return LTBackup::getRunStateLabel($value,$this->id);
             });
@@ -222,8 +259,10 @@ EOT;
             while(trim($lineStr) != \LTBackup\Extension\Support\LTBackup::LOG_END ) {
                 $fp = fopen($file, "r") ;
                 fseek($fp,$readCount);
+                $start  = 0;
                 while(!feof($fp))
                 {
+                    $start++;
                     $lineStr =  fgets($fp);
                     $readCount +=  strlen($lineStr);
                     DynamicOutput::addClause($lineStr, DynamicOutputSupport::TYPE_MESSAGE);
@@ -231,6 +270,7 @@ EOT;
 
                 }
                 fclose($fp);
+                $start == 0 && sleep(1);
             }
             DynamicOutput::addClause(\LTBackup\Extension\Support\LTBackup::LOG_END, DynamicOutputSupport::TYPE_MESSAGE);
             DynamicOutput::output(false,true,true);

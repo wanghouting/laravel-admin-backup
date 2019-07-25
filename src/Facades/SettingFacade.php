@@ -8,6 +8,8 @@ use LTBackup\Extension\Support\SettingSupport;
 /**
  * Class SettingFacade
  * @method  static mixed get($name, $default = null);
+ * @method static mixed getFull($name);
+ * @method static getWithType($type);
  * @method static Model find($id)
  * @method static \Illuminate\Database\Eloquent\Collection all()
  * @method static Builder allWithBuilder()
