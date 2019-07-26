@@ -4,7 +4,7 @@
     "type": "tools",
     "minimum-stability": "dev",
     "require": {
-        "encore/laravel-admin": "^1.6.6",
+        "encore/laravel-admin": "^1.6.5",
         "php": "^7.0.3",
         "nicolab/php-ftp-client": "^1.5"
     },
