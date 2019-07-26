@@ -46,12 +46,12 @@ class LTBackupRunLogController extends Controller
 
     private function reloadData(Grid $grid){
         $token = csrf_token();
+        $tableId = isset($grid->tableID) ? '#'.$grid->tableID : '.table';
         $script = <<<EOT
-         
           function refresh() { 
             var needUpdateCount = 0;
             var needUpdateElement  = [];
-           $("#{$grid->tableID } tbody tr").each(function(){
+           $("{$tableId} tbody tr").each(function(){
               var status =   $(this).find('td label.status').data('value');
               if(status <= 1 ){
                 var id =  $(this).find('td label.status').data('id');

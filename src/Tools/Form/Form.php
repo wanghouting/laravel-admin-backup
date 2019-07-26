@@ -44,9 +44,13 @@ class Form extends \Encore\Admin\Form {
             $callback($this);
         }
 
-        $this->isSoftDeletes = in_array(SoftDeletes::class, class_uses_deep($this->model));
+        if(function_exists('class_uses_deep')){
+            $this->isSoftDeletes = in_array(SoftDeletes::class, class_uses_deep($this->model));
+             $this->callInitCallbacks();
+        }else if(function_exists('class_uses')){
+            $this->isSoftDeletes = in_array(SoftDeletes::class, class_uses($this->model));
+        }
 
-        $this->callInitCallbacks();
         $this->iTimeStamps();
     }
 

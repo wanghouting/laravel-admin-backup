@@ -6,6 +6,7 @@ namespace LTBackup\Extension\Controllers\Base;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Show;
 use Illuminate\Routing\Controller;
+use LTBackup\Extension\Facades\LTBackup;
 use LTBackup\Extension\Facades\SettingFacade;
 
 
@@ -56,15 +57,26 @@ class AdminBaseController extends Controller
         $this->id = $id;
         $content =  $content->init($this->header,trans('admin.edit'),$this->form()->edit($id));
         $error = '';
-        if(has_disabled_functions('exec'))
-            $error = 'exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec';
+//        if(has_disabled_functions('exec'))
+//            $error = 'exec函数已被禁用，请在php.ini配置文件下的disable_functions中去除exec';
 
-        $backupDir = SettingFacade::get('ltbackup_dir','/backups');
-
+        $backupDir = LTBackup::getBackupDir(false);
         if(!is_writeable($backupDir))
-            $error .= "</br></br> ".$backupDir.'目录不可写';
-        if(!empty($error))
+            $error .= $backupDir.'目录不可写,备份功能将自动关闭';
+        if(is_win()){
+            $error .=  empty($error) ? '' : "; " ;
+            $error .= '暂时只支持linux/mac系统,备份功能将自动关闭';
+        }
+        if(!empty($error)){
             $content = $content->withError('警告',$error);
+            if(SettingFacade::get('ltbackup_status') == 'on'){
+                SettingFacade::set('ltbackup_status','off');
+            }
+        }else{
+//            if(SettingFacade::get('ltbackup_status') != 'on'){
+//                SettingFacade::set('ltbackup_status','on');
+//            }
+        }
         return $content;
     }
 

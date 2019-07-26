@@ -61,13 +61,13 @@ EOT;
             2 => 'continue_creating',
             3 => 'view',
         ];
-
+        $defaultCheck =  isset($this->defaultCheck) ? $this->defaultCheck : null;
         $data = [
             'width'            => $this->builder->getWidth(),
             'buttons'          => $this->buttons,
             'checkboxes'       => $this->checkboxes,
             'submit_redirects' => $submitRedirects,
-            'default_check'    => $this->defaultCheck,
+            'default_check'    => $defaultCheck,
         ];
 
         return view($this->view, $data)->render();
