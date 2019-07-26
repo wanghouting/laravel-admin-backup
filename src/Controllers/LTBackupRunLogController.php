@@ -15,6 +15,7 @@ use LTBackup\Extension\Facades\SettingFacade;
 use LTBackup\Extension\Support\DynamicOutputSupport;
 use LTBackup\Extension\Support\FtpManagerSupport;
 use LTBackup\Extension\Tools\Buttons\RunLogButton;
+use LTBackup\Extension\Tools\Buttons\RunLogDeleteButton;
 use LTBackup\Extension\Tools\Grid\Actions;
 use LTBackup\Extension\Tools\Grid\Grid;
 use LTBackup\Extension\Tools\Layout\Content;
@@ -203,8 +204,10 @@ EOT;
             });
             $grid->actions(function (Actions $actions){
                 $actions->disableEdit();
+                //$actions->disableDelete();
                 $actions->setResource('/admin/ltbackup-log');
                 $actions->disableView();
+               // $actions->prepend((new RunLogDeleteButton( $actions->getKey()))->render());
                 $actions->prepend((new RunLogButton( $actions->getKey()))->render());
             });
 

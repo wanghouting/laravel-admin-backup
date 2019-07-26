@@ -19,7 +19,11 @@ class Admin extends  \Encore\Admin\Admin {
            'vendor/laravel-admin-backup/layer/theme/default/layer.css',
        ]);
        self::$baseJs = array_merge(self::$baseJs,[
-           'vendor/laravel-admin-backup/layer/layer.js',
+
+       ]);
+       self::$headerJs = array_merge(self::$headerJs,[
+           'vendor/laravel-admin/bootstrap-switch/dist/js/bootstrap-switch.min.js',
+           'vendor/laravel-admin-backup/layer/layer.js'
        ]);
     }
 
