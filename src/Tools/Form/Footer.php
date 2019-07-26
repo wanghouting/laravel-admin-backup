@@ -55,11 +55,19 @@ EOT;
         if($this->isCheckContinueEdit) $this->_checkContinueEdit();
         if($this->isCheckContinueShow) $this->_checkContinueShow();
         if($this->isCheckContinueAdd) $this->_checkContinueAdd();
+        
+        $submitRedirects = [
+            1 => 'continue_editing',
+            2 => 'continue_creating',
+            3 => 'view',
+        ];
 
         $data = [
-            'buttons'      => $this->buttons,
-            'checkboxes'   => $this->checkboxes,
-            'width'        => $this->builder->getWidth(),
+            'width'            => $this->builder->getWidth(),
+            'buttons'          => $this->buttons,
+            'checkboxes'       => $this->checkboxes,
+            'submit_redirects' => $submitRedirects,
+            'default_check'    => $this->defaultCheck,
         ];
 
         return view($this->view, $data)->render();

@@ -12,6 +12,7 @@ use Encore\Admin\Layout\Content as BaseContent;
 class Content extends BaseContent
 {
     public $view;
+    public $header;
     /**
      * @return string
      * @throws \Throwable
