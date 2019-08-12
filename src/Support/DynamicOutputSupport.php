@@ -89,13 +89,15 @@ class DynamicOutputSupport {
      */
     private function initBody(){
         try{
-            if(ob_get_length())ob_end_clean();
-            set_time_limit(0);
-            ob_implicit_flush();
-            header('X-Accel-Buffering: no');
+            ob_end_clean();
+         
         }catch (\Exception $e){
 
         }
+        set_time_limit(0);
+        ob_implicit_flush();
+        header('X-Accel-Buffering: no');
+        
         echo "<style> body {background-color: #0C0C0C} </style>";
         echo "<div style='width:100%;height: auto;background-color: #0C0C0C;margin: 10px 0;'>";
         echo '<script type="text/javascript" src="/vendor/laravel-admin-backup/jquery/jquery.min.js"></script>';
