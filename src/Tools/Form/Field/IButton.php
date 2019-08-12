@@ -58,6 +58,7 @@ class IButton extends Field
     {
         $url = $this->options()->value;
         $token = csrf_token();
+        $route_prefix = config('laravel-admin-backup.route_prefix');
         $this->script = <<<EOT
         $('{$this->getElementClassSelector()}').on('click',function(){
              var address,port,username,password;
@@ -71,7 +72,7 @@ class IButton extends Field
              }else{
                 var index = layer.load(2, {shade: false}); //0代表加载的风格，支持0-2
                 $.ajax({
-                    url:"/admin/{$url}",
+                    url:"/{$route_prefix}/{$url}",
                     dataType:"json",
                     async:true,
                     data:{"address":address,"port":port,"username":username,"password":password,"_token":"{$token}"},

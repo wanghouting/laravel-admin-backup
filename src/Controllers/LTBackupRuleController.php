@@ -38,7 +38,7 @@ class LTBackupRuleController extends AdminBaseController
     {
 
         $this->iframeAutoHegiht();
-        $grid = '<iframe src="/admin/ltbackup-log" id="external-frame"  width="100%" height="100%" style=" border: 0;min-height: 1000px " scrolling="no"></iframe>';
+        $grid = '<iframe src="/'.config('laravel-admin-backup.route_prefix').'/ltbackup-log" id="external-frame"  width="100%" height="100%" style=" border: 0;min-height: 1000px " scrolling="no"></iframe>';
 
         $content = $content->init($this->header,trans('admin.list'),$this->grid()->render().$grid);
         $error = '';

@@ -47,6 +47,7 @@ class LTBackupRunLogController extends Controller
     private function reloadData(Grid $grid){
         $token = csrf_token();
         $tableId = isset($grid->tableID) ? '#'.$grid->tableID : '.table';
+        $route_prefix = config('laravel-admin-backup.route_prefix');
         $script = <<<EOT
           function refresh() { 
             var needUpdateCount = 0;
@@ -65,7 +66,7 @@ class LTBackupRunLogController extends Controller
             var status =  element.find('td label.status').data('value');
              var intv = setInterval(function(){
                 $.ajax({
-                    url:"/admin/ltbackup-refresh",
+                    url:"/{$route_prefix}/ltbackup-refresh",
                     dataType:"json",
                     async:true,
                     data:{"id":id,"status":status,"_token":"{$token}"},
@@ -114,7 +115,7 @@ class LTBackupRunLogController extends Controller
                                         ftpLabelStatus = '<label class="label ftp_status label-primary"><i class="fa fa-exclamation-triangle"> </i> 尚未开启</label>';    
                                         break;
                                     case 2:
-                                        ftpLabelStatus = '<label class="label ftp_status label-success "><a href="/admin/ltbackup-download?id='+id+'&type=ftp" target="_blank" style="color: #FFFFFF"> <i class="fa fa-download"> </i> 点击下载</a></label>';
+                                        ftpLabelStatus = '<label class="label ftp_status label-success "><a href="/{$route_prefix}/ltbackup-download?id='+id+'&type=ftp" target="_blank" style="color: #FFFFFF"> <i class="fa fa-download"> </i> 点击下载</a></label>';
                                         break;
                                     case 3:
                                         ftpLabelStatus = '<label class="label ftp_status label-danger"  ><i class="fa fa-close"> </i> 上传失败</label>';   
@@ -205,7 +206,7 @@ EOT;
             $grid->actions(function (Actions $actions){
                 $actions->disableEdit();
                 //$actions->disableDelete();
-                $actions->setResource('/admin/ltbackup-log');
+                $actions->setResource('/'.config('laravel-admin-backup.route_prefix').'/ltbackup-log');
                 $actions->disableView();
                // $actions->prepend((new RunLogDeleteButton( $actions->getKey()))->render());
                 $actions->prepend((new RunLogButton( $actions->getKey()))->render());

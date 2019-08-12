@@ -32,7 +32,7 @@ class LTBackupDatabaseSeeder extends Seeder
             'order'     => 1,
             'title'     => '数据备份',
             'icon'      => 'fa-database',
-            'uri'       => '/',
+            'uri'       => config('laravel-admin-backup.route_prefix'),
             'created_at' => $date,
             'updated_at' => $date
         ];

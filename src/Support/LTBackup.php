@@ -44,7 +44,7 @@ class LTBackup{
             case RunLog::FTP_STATUS_NO_OPEN:
                 return '<label class="label ftp_status label-primary"><i class="fa fa-exclamation-triangle"> </i> 尚未开启</label>';
             case RunLog::FTP_STATUS_SUCCESS:
-                return '<label class="label ftp_status label-success "><a href="/admin/ltbackup-download?id='.$id.'&type=ftp" style="color: #FFFFFF" target="_blank"> <i class="fa fa-download"> </i> 点击下载</a></label>';
+                return '<label class="label ftp_status label-success "><a href="/'.config('laravel-admin-backup.route_prefix').'/ltbackup-download?id='.$id.'&type=ftp" style="color: #FFFFFF" target="_blank"> <i class="fa fa-download"> </i> 点击下载</a></label>';
             case RunLog::FTP_STATUS_FAIL:
                 return '<label class="label ftp_status label-danger"  ><i class="fa fa-close"> </i> 上传失败</label>';
             case RunLog::FTP_STATUS_STOPED:
@@ -62,7 +62,7 @@ class LTBackup{
                     return '<label class="'.$column.'" style="font-weight: normal;"><s>'.$value.'</s></label>';
                 }
                 $label = '<label class="'.$column.'" style="font-weight: normal;">'.$value.'</label>';
-                return  '<a href="/admin/ltbackup-download?id='.$id.'" target="_blank">' . $label . '</a>';
+                return  '<a href="/'.config('laravel-admin-backup.route_prefix').'/ltbackup-download?id='.$id.'" target="_blank">' . $label . '</a>';
             case 'filesize':
                 if(!empty($value)) {
                     return $label = '<label class="' . $column . '" style="font-weight: normal;">' . trans_byte($value) . '</label>';

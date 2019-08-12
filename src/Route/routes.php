@@ -9,7 +9,7 @@ use Illuminate\Routing\Router;
 
 Route::group([
     'namespace' => "LTBackup\\Extension\\Controllers",
-    'prefix' => 'admin',
+    'prefix' => config('laravel-admin-backup.route_prefix'),
     'middleware' => ['web', 'admin']
 ], function (Router $router) {
     $router->resource('ltbackup-rule','LTBackupRuleController');

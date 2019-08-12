@@ -20,6 +20,7 @@ class RunLogButton extends AbstractTool
     {
 
         $token = csrf_token();
+        $route_prefix = config('laravel-admin-backup.route_prefix');
         return <<<SCRIPT
         $('.btn-{$this->key}').on('click', function () {
                       layer.open({
@@ -27,7 +28,7 @@ class RunLogButton extends AbstractTool
                                   skin: 'layui-layer-rim-blank', //加上边框
                                   area: ['640px', '420px'], //宽高
                                   offset: 't',
-                                  content: '/admin/ltbackup-log-view?id=' + {$this->id}
+                                  content: '/{$route_prefix}/ltbackup-log-view?id=' + {$this->id}
                        });
         });
 SCRIPT;
