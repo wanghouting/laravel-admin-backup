@@ -139,7 +139,6 @@ class LTBackup{
         }
         if($rule){
             DB::transaction(function () use ($rule,$isInstance){
-                    $rule->run_times += 1;
                     $run_type = $isInstance ? RunLog::RUN_TYPE_AUTO : RunLog::RUN_TYPE_MANUAL;
                     $res =  RunLog::create(['rule_id'=>$rule->id,'run_type'=>$run_type,'file'=>$this->createFile($rule->type)]);
                     $this->runLog($res->id,'队列等待中...',true);
@@ -403,9 +402,15 @@ class LTBackup{
      * @param $message
      */
     private function success(RunLog $log, $message){
-        $log->status = RunLog::RUN_STATE_SUCCESS;
-        $log->filesize = filesize($log->file);
-        $log->save();
+         DB::transaction(function () use ($log,$message) {
+            $log->status = RunLog::RUN_STATE_SUCCESS;
+            $log->filesize = filesize($log->file);
+            $log->save();
+            $rule = $log->rule;
+            $rule->run_times += 1;
+            $rule->save();
+        }
+        
         $this->runLog($log->id, 'info: ' . $message);
         $this->runLog($log->id,self::LOG_END);
         $this->run(true);
@@ -421,6 +426,7 @@ class LTBackup{
             $log->status = RunLog::RUN_STATE_FAIL;
             $log->save();
             $rule = $log->rule;
+            $rule->run_times += 1;
             $rule->run_fail_times += 1;
             $rule->save();
         });
