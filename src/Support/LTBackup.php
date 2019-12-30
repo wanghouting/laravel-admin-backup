@@ -409,7 +409,7 @@ class LTBackup{
             $rule = $log->rule;
             $rule->run_times += 1;
             $rule->save();
-        }
+        });
         
         $this->runLog($log->id, 'info: ' . $message);
         $this->runLog($log->id,self::LOG_END);
