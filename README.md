@@ -18,7 +18,7 @@ laravel 备份扩展
     ``` 
 
  	```
- 	php artisan ltupdate:install 
+ 	php artisan ltbackup:install 
  	```
 
  3. 添加定时任务
